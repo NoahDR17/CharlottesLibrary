@@ -391,14 +391,62 @@
     return a;
   }
 
+  /* A random order where no colour appears three times in a row */
+  function shuffledNoTriples(list) {
+    for (var attempt = 0; attempt < 60; attempt++) {
+      var pool = shuffled(list), out = [], stuck = false;
+      while (pool.length) {
+        var n = out.length;
+        var ban = n >= 2 && bookOf(out[n - 1]).k === bookOf(out[n - 2]).k ? bookOf(out[n - 1]).k : null;
+        /* If one colour dominates what's left, place it now or it won't fit later */
+        var counts = {}, top = null;
+        pool.forEach(function (e) { var c = bookOf(e).k; counts[c] = (counts[c] || 0) + 1; if (!top || counts[c] > counts[top]) top = c; });
+        var must = top !== ban && counts[top] > 2 * (pool.length - counts[top]) ? top : null;
+        var idx = -1;
+        for (var i = 0; i < pool.length; i++) {
+          var c = bookOf(pool[i]).k;
+          if (c !== ban && (!must || c === must)) { idx = i; break; }
+        }
+        if (idx < 0) { stuck = true; break; }
+        out.push(pool.splice(idx, 1)[0]);
+      }
+      if (!stuck) return out;
+    }
+    return shuffled(list);
+  }
+
+  /* Safety net: break up any run of three on a single shelf by swapping with a book further along */
+  function breakTriples(arrs) {
+    arrs.forEach(function (a) {
+      for (var i = 2; i < a.length; i++) {
+        var k = bookOf(a[i]).k;
+        if (bookOf(a[i - 1]).k !== k || bookOf(a[i - 2]).k !== k) continue;
+        for (var j = i + 1; j < a.length; j++) {
+          if (bookOf(a[j]).k === k) continue;
+          var t = a[i]; a[i] = a[j]; a[j] = t;
+          if (!hasTriple(a)) break;
+          t = a[i]; a[i] = a[j]; a[j] = t;
+        }
+      }
+    });
+  }
+
+  function hasTriple(a) {
+    for (var i = 2; i < a.length; i++) {
+      var k = bookOf(a[i]).k;
+      if (bookOf(a[i - 1]).k === k && bookOf(a[i - 2]).k === k) return true;
+    }
+    return false;
+  }
+
   function reshuffle() {
     if (shuffling || drag) return;
     var all = [];
     rows.forEach(function (r) { all = all.concat(booksIn(r)); });
     if (!all.length) return;
 
-    /* A new random order, spread evenly across the shelves */
-    var order = shuffled(all);
+    /* A new random order, spread evenly across the shelves, with no three same-coloured books side by side */
+    var order = shuffledNoTriples(all);
     var total = rowW(order);
     var arrs = [], i = 0;
     for (var s = 0; s < SHELVES; s++) {
@@ -409,6 +457,7 @@
       arrs.push(shelf);
     }
     cascade(arrs, null);
+    breakTriples(arrs);
 
     shuffling = true;
     app.classList.add('shuffling');
