@@ -25,7 +25,9 @@
   var rug = document.getElementById('rug');
   var countEl = document.getElementById('count');
 
-  var state = { shelves: [], moves: 0, nextId: 1 };
+  var state = { shelves: [], moves: 0, nextId: 1, binned: [] };
+  var rainbowRows = [];
+  var glowReady = false;
   var shuffling = false;
   var byId = new Map();
   var u = 1, innerW = 300;
@@ -174,6 +176,47 @@
         i = j;
       }
     });
+    /* Rainbow moment: a whole shelf (three or more books) all the same colour */
+    rows.forEach(function (r, ri) {
+      var els = booksIn(r);
+      var k = els.length ? bookOf(els[0]).k : null;
+      var full = els.length >= 3 && els.every(function (e) { return bookOf(e).k === k; });
+      var plank = r.nextElementSibling;
+      if (plank) plank.classList.toggle('rainbow', full);
+      if (full && !rainbowRows[ri] && glowReady && !shuffling) celebrate(r, k);
+      rainbowRows[ri] = full;
+    });
+    glowReady = true;
+  }
+
+  function celebrate(row, k) {
+    try { if (navigator.vibrate) navigator.vibrate([16, 70, 16, 70, 34]); else haptic(); } catch (_) {}
+    row.classList.remove('rainbow-sweep');
+    void row.offsetWidth;
+    row.classList.add('rainbow-sweep');
+    setTimeout(function () { row.classList.remove('rainbow-sweep'); }, 3200);
+    toast('A whole shelf of ' + NAMES[k].toLowerCase() + '!');
+    Array.prototype.forEach.call(document.querySelectorAll('.dog'), function (dg) {
+      dg.classList.add('petted');
+      setTimeout(function () { dg.classList.remove('petted'); }, 2600);
+    });
+    if (reduce) return;
+    var rr = row.getBoundingClientRect();
+    var HUES = [350, 28, 52, 130, 210, 275, 330];
+    for (var i = 0; i < 18; i++) {
+      var sp = document.createElement('span');
+      sp.className = 'sparkle';
+      sp.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="hsl(' + HUES[i % HUES.length] + ' 90% 72%)" d="M12 0 C13 8 16 11 24 12 C16 13 13 16 12 24 C11 16 8 13 0 12 C8 11 11 8 12 0Z"></path></svg>';
+      app.appendChild(sp);
+      var x = rr.left + Math.random() * rr.width, y = rr.top + Math.random() * rr.height;
+      var s = 0.6 + Math.random() * 0.9, rise = 20 + Math.random() * 40;
+      sp.animate([
+        { transform: 'translate(' + x + 'px,' + y + 'px) scale(0) rotate(0deg)', opacity: 0 },
+        { transform: 'translate(' + x + 'px,' + (y - rise * 0.4) + 'px) scale(' + s + ') rotate(90deg)', opacity: 1, offset: 0.35 },
+        { transform: 'translate(' + x + 'px,' + (y - rise) + 'px) scale(0) rotate(180deg)', opacity: 0 }
+      ], { duration: 1100 + Math.random() * 700, delay: Math.random() * 500, easing: 'ease-out', fill: 'backwards' })
+        .onfinish = (function (el) { return function () { el.remove(); }; })(sp);
+    }
   }
 
   /* Width of one item on a shelf: a book, or the gap where the dragged book will land */
@@ -277,6 +320,101 @@
     } catch (_) {}
   }
 
+  /* ---------- The book bin ---------- */
+  var binEl = document.getElementById('bin');
+  var binCount = document.getElementById('binCount');
+  var toastEl = document.getElementById('toast');
+  var toastTimer = null;
+
+  function toast(msg) {
+    if (!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.hidden = false;
+    toastEl.style.animation = 'none';
+    void toastEl.offsetWidth;
+    toastEl.style.animation = '';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.hidden = true; }, 2200);
+  }
+
+  function overBin(x, y) {
+    var r = binEl.getBoundingClientRect(), pad = 20;
+    return x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad;
+  }
+
+  function updateBin() {
+    var n = state.binned.length;
+    binCount.hidden = n === 0;
+    binCount.textContent = n;
+    binEl.setAttribute('aria-label', n
+      ? 'Book bin with ' + n + (n === 1 ? ' book' : ' books') + '. Tap to put them back.'
+      : 'Book bin. Drag a book here to remove it.');
+  }
+
+  function dropInBin(d) {
+    haptic();
+    binEl.classList.remove('hot');
+    app.classList.remove('dragging');
+    byId.delete(d.b.id);
+    state.binned.push(d.b);
+    sync();
+    updateGlow();
+    save();
+    updateBin();
+    var g = d.ghost, br = binEl.getBoundingClientRect();
+    if (reduce) { g.remove(); }
+    else {
+      g.style.transition = 'transform 320ms cubic-bezier(.5,0,.75,0), opacity 320ms ease-in';
+      g.style.transform = 'translate(' + (br.left + br.width / 2 - g.offsetWidth * 0.12) + 'px,' + (br.top + br.height * 0.25) + 'px) rotate(30deg) scale(0.2)';
+      g.style.opacity = '0';
+      setTimeout(function () { g.remove(); }, 360);
+    }
+    binEl.classList.remove('gulp');
+    void binEl.offsetWidth;
+    binEl.classList.add('gulp');
+    toast('Book removed. Tap the bin to put it back.');
+  }
+
+  function restoreBinned() {
+    var books = state.binned;
+    state.binned = [];
+    var arrs = currentArr(null), fresh = [];
+    books.forEach(function (b) {
+      byId.set(b.id, b);
+      var el = bookEl(b);
+      fresh.push(el);
+      /* back onto the shelf with the most room, at a random spot */
+      var ri = 0, best = Infinity;
+      arrs.forEach(function (a, i) { var w = rowW(a); if (w < best) { best = w; ri = i; } });
+      arrs[ri].splice(rand(arrs[ri].length + 1), 0, el);
+    });
+    cascade(arrs, null);
+    flip(function () { applyArr(arrs); });
+    layout();
+    var br = binEl.getBoundingClientRect();
+    if (!reduce) {
+      fresh.forEach(function (el, i) {
+        var r = el.getBoundingClientRect();
+        el.animate([
+          { transform: 'translate(' + (br.left - r.left) + 'px,' + (br.top - r.top) + 'px) scale(0.2) rotate(-30deg)', opacity: 0 },
+          { transform: 'none', opacity: 1 }
+        ], { duration: 520, delay: i * 70, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' });
+      });
+    }
+    sync();
+    updateGlow();
+    save();
+    updateBin();
+    haptic();
+    toast(books.length === 1 ? 'Put 1 book back' : 'Put ' + books.length + ' books back');
+  }
+
+  binEl.addEventListener('click', function () {
+    if (drag || shuffling) return;
+    if (!state.binned.length) { toast('Drag a book here to remove it'); return; }
+    restoreBinned();
+  });
+
   /* ---------- Dragging ---------- */
   /* Keep the screen still: no scrolling, rubber-banding or pinch-zoom from a stray finger */
   document.addEventListener('touchmove', function (e) { if (e.cancelable) e.preventDefault(); }, { passive: false });
@@ -327,6 +465,7 @@
     drag.gap = gap;
     var homeRow = el.parentNode;
     drag.key = rows.indexOf(homeRow) + ':' + booksIn(homeRow).indexOf(el);
+    drag.home = { row: rows.indexOf(homeRow), idx: booksIn(homeRow).indexOf(el) };
     flip(function () { el.replaceWith(gap); });
     drag.base = currentArr(null);
     app.classList.add('dragging');
@@ -337,7 +476,18 @@
     drag.lx = x;
     var target = Math.max(-12, Math.min(12, vx * 0.8));
     drag.tilt += (target - drag.tilt) * 0.25;
-    drag.ghost.style.transform = 'translate(' + (x - drag.ox) + 'px,' + (y - drag.oy) + 'px) rotate(' + drag.tilt.toFixed(2) + 'deg) scale(1.08)';
+    var over = overBin(x, y);
+    drag.ghost.style.transform = 'translate(' + (x - drag.ox) + 'px,' + (y - drag.oy) + 'px) rotate(' + drag.tilt.toFixed(2) + 'deg) scale(' + (over ? 0.8 : 1.08) + ')';
+    if (over) {
+      if (!drag.overBin) {
+        drag.overBin = true;
+        drag.key = 'bin';
+        binEl.classList.add('hot');
+        flip(function () { drag.gap.remove(); applyArr(drag.base); });
+      }
+      return;
+    }
+    if (drag.overBin) { drag.overBin = false; binEl.classList.remove('hot'); }
     place(x, y);
   }
 
@@ -373,6 +523,13 @@
         );
       }
       return;
+    }
+    if (d.overBin) { dropInBin(d); return; }
+    if (!d.gap.isConnected) {
+      /* let go somewhere off the shelves: the book goes back where it came from */
+      var back = d.base.map(function (a) { return a.slice(); });
+      back[d.home.row].splice(Math.min(d.home.idx, back[d.home.row].length), 0, d.gap);
+      flip(function () { applyArr(back); });
     }
     haptic();
     if (d.gap.getAnimations) d.gap.getAnimations().forEach(function (a) { a.finish(); });
@@ -431,6 +588,7 @@
   /* ---------- Counting and saving ---------- */
   function updateCount() {
     var n = state.moves || 0;
+    if (!countEl) return;
     countEl.textContent = n.toLocaleString('en-GB') + ' ' + (n === 1 ? 'book' : 'books') + ' moved';
   }
 
@@ -588,34 +746,6 @@
 
   shuffleBtn.addEventListener('click', reshuffle);
 
-  /* Reset the books-moved count: first tap asks, second tap within a few seconds resets */
-  var resetBtn = document.getElementById('resetCount');
-  var resetLabel = resetBtn.querySelector('span');
-  var resetTimer = null;
-  function resetIdle() {
-    clearTimeout(resetTimer);
-    resetBtn.classList.remove('confirm', 'done');
-    resetLabel.textContent = 'Reset count';
-  }
-  resetBtn.addEventListener('click', function () {
-    if (!resetBtn.classList.contains('confirm')) {
-      resetBtn.classList.remove('done');
-      resetBtn.classList.add('confirm');
-      resetLabel.textContent = 'Tap again to reset';
-      clearTimeout(resetTimer);
-      resetTimer = setTimeout(resetIdle, 3000);
-      return;
-    }
-    state.moves = 0;
-    updateCount();
-    save();
-    clearTimeout(resetTimer);
-    resetBtn.classList.remove('confirm');
-    resetBtn.classList.add('done');
-    resetLabel.textContent = 'Count reset';
-    resetTimer = setTimeout(resetIdle, 1800);
-  });
-  resetBtn.addEventListener('blur', function () { if (resetBtn.classList.contains('confirm')) resetIdle(); });
 
   /* ---------- The dogs ---------- */
   var audio = null;
@@ -766,12 +896,15 @@
     var s = (data && data.state) || load();
     if (s) state = s;
     if (!state.nextId) state.nextId = 1;
+    if (!Array.isArray(state.binned)) state.binned = [];
+    state.binned = state.binned.filter(function (b) { return WEIGHTS[b.k]; });
     layout();
     var fresh = !state.shelves.some(function (l) { return l && l.length; });
-    if (fresh) state.shelves = newShelves();
+    if (fresh) { state.shelves = newShelves(); state.binned = []; }
     render(fresh);
     layout();
     updateCount();
+    updateBin();
     save();
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
   }
@@ -780,4 +913,9 @@
   if (hot && hot.snapshot) { try { hot.snapshot(function () { return { state: state }; }); } catch (_) {} }
   if (hot && hot.ready) hot.ready(start);
   else start((hot && hot.data) || {});
+
+  /* ---------- Installable app: works offline once she's opened it ---------- */
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
 })();

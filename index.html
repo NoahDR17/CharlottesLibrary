@@ -4,6 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#EBCBCD">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Library">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Charlotte's Library</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,8 +43,8 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M7 10h6M7 14h10"></path></svg>
         <span>My beautiful girl · <span class="num" id="count">0 books moved</span></span>
       </div> -->
-      <!-- <div class="pill soft">Any order you like turnip</div>
-    </div> -->
+      <!-- <div class="pill soft">Any order you like turnip</div> -->
+    </div>
   </header>
 
   <main class="case-wrap" id="caseWrap">
@@ -102,11 +109,19 @@
     </div>
     <div class="actions">
       <button class="happy" id="reshuffle" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h3.5c2 0 3.3.9 4.4 2.6l2.2 3.8c1.1 1.7 2.4 2.6 4.4 2.6H21"></path><path d="M3 17h3.5c1.6 0 2.7-.6 3.6-1.7"></path><path d="M21 7h-3.5c-1.6 0-2.7.6-3.6 1.7"></path><path d="M18 4l3 3-3 3"></path><path d="M18 14l3 3-3 3"></path></svg>Reshuffle</button>
-      <button class="reset" id="resetCount" type="button" aria-live="polite"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg><span>Reset count</span></button>
+      <button class="bin" id="bin" type="button" aria-label="Book bin. Drag a book here to remove it.">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <g class="bin-lid"><rect x="9" y="11" width="30" height="5" rx="2" fill="currentColor"></rect><rect x="20" y="7" width="8" height="4" rx="1.5" fill="currentColor"></rect></g>
+          <path d="M12 18h24l-2.4 22.2a3 3 0 0 1-3 2.8H17.4a3 3 0 0 1-3-2.8z" fill="currentColor"></path>
+          <path class="bin-ribs" d="M19.5 23v14M24 23v14M28.5 23v14" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+        <span class="bin-count" id="binCount" hidden>0</span>
+      </button>
     </div>
     <p class="hint">I love you always</p>
   </aside>
 
+  <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
 </div>
 
 <script src="script.js"></script>
