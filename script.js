@@ -57,22 +57,52 @@
   function clampU(x) { return Math.max(0.6, Math.min(2.2, x)); }
   function widthOf(list, uu) { return list.reduce(function (s, b) { return s + b.w * uu + GAP; }, 0); }
 
+  /* Every colour on the bookcase gets at least three books, so a glowing run is always possible */
+  function balanceColours(books) {
+    for (var pass = 0; pass < 20; pass++) {
+      var cnt = {};
+      books.forEach(function (b) { cnt[b.k] = (cnt[b.k] || 0) + 1; });
+      var keys = Object.keys(cnt);
+      var short = keys.filter(function (k) { return cnt[k] < 3; });
+      if (!short.length) return;
+      var k = short[0], need = 3 - cnt[k];
+      var donor = keys.filter(function (d) { return d !== k; })
+        .sort(function (x, y) { return cnt[y] - cnt[x]; })[0];
+      if (donor && cnt[donor] - need >= 3) {
+        /* top this colour up to three, borrowing from the most common colour */
+        var moved = 0;
+        books.forEach(function (b) { if (moved < need && b.k === donor) { b.k = k; moved++; } });
+      } else if (donor) {
+        /* too few to top up: fold this colour into the most common one */
+        books.forEach(function (b) { if (b.k === k) b.k = donor; });
+      } else {
+        return;
+      }
+    }
+  }
+
   function newShelves() {
     var m = metrics();
     var uu = clampU(m.uH);
-    var target = m.inner * 0.84;
-    var shelves = [];
-    for (var i = 0; i < SHELVES; i++) {
-      var list = [], a = '', b = '';
-      for (var guard = 0; guard < 200; guard++) {
-        var k = pickKey();
-        var tries = 0;
-        while (k === a && a === b && tries++ < 10) k = pickKey();
-        var bk = makeBook(k);
-        if (widthOf(list, uu) + bk.w * uu + GAP > target) break;
-        list.push(bk);
-        b = a; a = k;
+    var per = m.inner * 0.84;
+    var cap = per * SHELVES;
+    var books = [], total = 0;
+    for (var guard = 0; guard < 400; guard++) {
+      var bk = makeBook(pickKey());
+      var w = bk.w * uu + GAP;
+      if (total + w > cap) break;
+      books.push(bk);
+      total += w;
+    }
+    balanceColours(books);
+    var order = shuffledNoTriples(books, function (b) { return b.k; });
+    var shelves = [], i = 0, used = 0;
+    for (var sh = 0; sh < SHELVES; sh++) {
+      var list = [], left = (total - used) / (SHELVES - sh);
+      while (i < order.length && (sh === SHELVES - 1 || widthOf(list, uu) + (order[i].w * uu + GAP) / 2 <= left)) {
+        list.push(order[i++]);
       }
+      used += widthOf(list, uu);
       shelves.push(list);
     }
     return shelves;
@@ -223,6 +253,30 @@
     });
   }
 
+  /* ---------- A little buzz when a book is placed ---------- */
+  /* Android: the Vibration API. iPhone (iOS 18+): Safari has no vibration API, but tapping a
+     hidden switch-style checkbox gives a light haptic tick, so we quietly click one. */
+  var hapticLabel = null;
+  function haptic() {
+    try {
+      if (navigator.vibrate) { navigator.vibrate(12); return; }
+      if (!hapticLabel) {
+        hapticLabel = document.createElement('label');
+        hapticLabel.setAttribute('aria-hidden', 'true');
+        hapticLabel.style.cssText = 'position:fixed;left:-200px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
+        var input = document.createElement('input');
+        input.type = 'checkbox';
+        input.setAttribute('switch', '');
+        input.tabIndex = -1;
+        hapticLabel.appendChild(input);
+        document.body.appendChild(hapticLabel);
+      }
+      var active = document.activeElement;
+      hapticLabel.click();
+      if (active && active.focus) active.focus({ preventScroll: true });
+    } catch (_) {}
+  }
+
   /* ---------- Dragging ---------- */
   /* Keep the screen still: no scrolling, rubber-banding or pinch-zoom from a stray finger */
   document.addEventListener('touchmove', function (e) { if (e.cancelable) e.preventDefault(); }, { passive: false });
@@ -320,6 +374,7 @@
       }
       return;
     }
+    haptic();
     if (d.gap.getAnimations) d.gap.getAnimations().forEach(function (a) { a.finish(); });
     var r = d.gap.getBoundingClientRect();
     var g = d.ghost, done = false;
@@ -369,6 +424,7 @@
       sync();
       updateGlow();
       changed();
+      haptic();
     }
   });
 
@@ -397,6 +453,9 @@
         /* A save that still holds a colour we no longer use (like green): start a fresh bookcase */
         var retired = s.shelves.some(function (l) { return (l || []).some(function (b) { return !WEIGHTS[b.k]; }); });
         if (retired) s.shelves = [];
+        var cnt = {};
+        s.shelves.forEach(function (l) { (l || []).forEach(function (b) { cnt[b.k] = (cnt[b.k] || 0) + 1; }); });
+        if (Object.keys(cnt).some(function (k) { return cnt[k] < 3; })) s.shelves = [];
         return s;
       }
     } catch (_) {}
@@ -414,19 +473,20 @@
   }
 
   /* A random order where no colour appears three times in a row */
-  function shuffledNoTriples(list) {
+  function shuffledNoTriples(list, kf) {
+    kf = kf || function (e) { return bookOf(e).k; };
     for (var attempt = 0; attempt < 60; attempt++) {
       var pool = shuffled(list), out = [], stuck = false;
       while (pool.length) {
         var n = out.length;
-        var ban = n >= 2 && bookOf(out[n - 1]).k === bookOf(out[n - 2]).k ? bookOf(out[n - 1]).k : null;
+        var ban = n >= 2 && kf(out[n - 1]) === kf(out[n - 2]) ? kf(out[n - 1]) : null;
         /* If one colour dominates what's left, place it now or it won't fit later */
         var counts = {}, top = null;
-        pool.forEach(function (e) { var c = bookOf(e).k; counts[c] = (counts[c] || 0) + 1; if (!top || counts[c] > counts[top]) top = c; });
+        pool.forEach(function (e) { var c = kf(e); counts[c] = (counts[c] || 0) + 1; if (!top || counts[c] > counts[top]) top = c; });
         var must = top !== ban && counts[top] > 2 * (pool.length - counts[top]) ? top : null;
         var idx = -1;
         for (var i = 0; i < pool.length; i++) {
-          var c = bookOf(pool[i]).k;
+          var c = kf(pool[i]);
           if (c !== ban && (!must || c === must)) { idx = i; break; }
         }
         if (idx < 0) { stuck = true; break; }
