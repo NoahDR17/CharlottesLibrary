@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EBCBCD">
+<title>A Date for Charlotte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: one centred stage that swaps between three scenes — envelope, three gifts, the question. */
+:root {
+  --wall: #EBCBCD;
+  --wall-stripe: rgba(255, 255, 255, 0.2);
+  --wood: #6B2C3E;
+  --wood-dark: #4E1E2D;
+  --wood-light: #8A3E52;
+  --brass: #C99060;
+  --cream: #FBF1EA;
+  --cream-ink: #F8E3D6;
+  --ink: #3A1E2A;
+  --rose: #E487A6;
+  --rose-deep: #C9587B;
+  --paper: #FFF8F2;
+  --font-display: 'Pinyon Script', 'Snell Roundhand', 'Apple Chancery', cursive;
+  --font-body: 'Nunito', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  color-scheme: light;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  background-color: var(--wall);
+  background-image: repeating-linear-gradient(90deg, var(--wall-stripe) 0 14px, rgba(255,255,255,0) 14px 28px);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-tap-highlight-color: transparent;
+}
+.page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(24px, env(safe-area-inset-bottom, 0px));
+  gap: 18px;
+}
+.back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(107, 44, 62, 0.12);
+  color: var(--wood);
+  font-weight: 800;
+  font-size: 14px;
+  text-decoration: none;
+}
+.back:hover { background: rgba(107, 44, 62, 0.2); }
+.back:focus-visible { outline: 3px solid var(--wood); outline-offset: 2px; }
+.stage {
+  flex: 1;
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  text-align: center;
+}
+h1, h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--wood);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+h1 { font-size: clamp(44px, 12vw, 64px); }
+h2 { font-size: clamp(36px, 10vw, 52px); }
+.lead { margin: 0; font-size: 16px; line-height: 1.5; max-width: 34ch; }
+.tiny { margin: 0; font-size: 13px; font-weight: 700; color: var(--wood); opacity: 0.75; letter-spacing: 0.04em; }
+.btn {
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wood);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 800;
+  padding: 12px 26px;
+  box-shadow: 0 6px 14px rgba(58, 30, 42, 0.25);
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.2s ease;
+}
+.btn:hover { background: #5A2333; }
+.btn:active { transform: scale(0.97); }
+.btn:focus-visible { outline: 3px solid var(--brass); outline-offset: 3px; }
+.scene { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.scene.enter { animation: sceneIn 0.6s cubic-bezier(.2,.8,.2,1); }
+@keyframes sceneIn { from { opacity: 0; transform: translateY(16px); } }
+
+/* ---------- Scene 1: the envelope ---------- */
+.envelope {
+  position: relative;
+  width: min(320px, 86vw);
+  aspect-ratio: 1.45;
+  margin-top: 70px;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  perspective: 900px;
+}
+.envelope:focus-visible { outline: 3px solid var(--wood); outline-offset: 6px; border-radius: 10px; }
+.env-back, .env-front, .env-flap { position: absolute; left: 0; right: 0; }
+.env-back {
+  inset: 0;
+  border-radius: 8px;
+  background: #D98DA4;
+  box-shadow: 0 16px 30px rgba(58, 30, 42, 0.28);
+}
+.letter {
+  position: absolute;
+  left: 7%; right: 7%;
+  top: 8%;
+  height: 86%;
+  border-radius: 6px;
+  background: var(--paper);
+  box-shadow: 0 4px 10px rgba(58, 30, 42, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px;
+  z-index: 1;
+  transition: transform 0.9s cubic-bezier(.2,.8,.2,1) 0.45s;
+}
+.letter .l-small { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--rose-deep); }
+.letter .l-big { font-family: var(--font-display); font-size: clamp(30px, 9vw, 40px); color: var(--wood); line-height: 1.1; }
+.letter .l-date { font-size: 15px; font-weight: 800; color: var(--ink); }
+.env-front {
+  inset: 0;
+  z-index: 2;
+  border-radius: 8px;
+  background:
+    linear-gradient(to top right, #E7A3B8 49.6%, rgba(0,0,0,0) 50%) left bottom / 50.4% 100% no-repeat,
+    linear-gradient(to top left, #E19AB0 49.6%, rgba(0,0,0,0) 50%) right bottom / 50.4% 100% no-repeat,
+    linear-gradient(to top, #EDB0C2 0 52%, rgba(0,0,0,0) 52%);
+  pointer-events: none;
+}
+.env-name {
+  position: absolute;
+  left: 0; right: 0; bottom: 14%;
+  z-index: 3;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 8vw, 34px);
+  color: var(--wood);
+  pointer-events: none;
+}
+.env-flap {
+  top: 0;
+  height: 62%;
+  z-index: 4;
+  transform-origin: top center;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(.4,0,.2,1), z-index 0s linear 0.35s;
+}
+.env-flap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #CF7F98;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  border-radius: 8px 8px 0 0;
+  filter: drop-shadow(0 3px 2px rgba(58,30,42,0.2));
+}
+.seal {
+  position: absolute;
+  left: 50%; top: 100%;
+  width: 54px; height: 54px;
+  margin: -34px 0 0 -27px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #B8496B, #8E2F4E 70%);
+  box-shadow: 0 3px 6px rgba(58,30,42,0.35), inset 0 0 0 4px rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.25s ease;
+}
+.seal svg { width: 24px; height: 24px; }
+.envelope:not(.open) .env-flap { animation: wiggle 3.2s ease-in-out infinite; }
+@keyframes wiggle { 0%, 86%, 100% { transform: rotateX(0); } 90% { transform: rotateX(14deg); } 94% { transform: rotateX(4deg); } }
+.envelope.open .seal { opacity: 0; }
+.envelope.open .env-flap { transform: rotateX(180deg); z-index: 0; }
+.envelope.open .letter { transform: translateY(-62%); }
+.envelope.open { cursor: default; }
+.hint-tap { animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.45; } }
+
+/* ---------- Scene 2: the three gifts ---------- */
+.gifts {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.gift {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 0.72;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  perspective: 800px;
+}
+.gift:focus-visible { outline: 3px solid var(--wood); outline-offset: 4px; border-radius: 12px; }
+.gift .order {
+  position: absolute;
+  left: 0; right: 0; top: -2px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wood);
+  opacity: 0.8;
+}
+.flipper {
+  position: absolute;
+  inset: 22px 0 0;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(.3,.7,.2,1) 0.35s;
+}
+.gift.open .flipper { transform: rotateY(180deg); }
+.face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 12px;
+}
+.wrap {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.box {
+  position: relative;
+  width: 86%;
+  height: 64%;
+  border-radius: 6px;
+  background: var(--g, #E487A6);
+  box-shadow: 0 10px 18px rgba(58, 30, 42, 0.25), inset -8px 0 0 rgba(0,0,0,0.07);
+}
+.box::before {
+  content: "";
+  position: absolute;
+  left: 50%; top: 0; bottom: 0;
+  width: 16%;
+  transform: translateX(-50%);
+  background: var(--ribbon, #FBF1EA);
+}
+.lid {
+  position: absolute;
+  left: -6%; right: -6%;
+  top: -16%;
+  height: 22%;
+  border-radius: 5px;
+  background: var(--g, #E487A6);
+  filter: brightness(1.06);
+  box-shadow: 0 4px 6px rgba(58, 30, 42, 0.2);
+  transition: transform 0.5s cubic-bezier(.3,1.4,.5,1), opacity 0.4s ease 0.15s;
+}
+.lid::before {
+  content: "";
+  position: absolute;
+  left: 50%; top: 0; bottom: 0;
+  width: 15%;
+  transform: translateX(-50%);
+  background: var(--ribbon, #FBF1EA);
+}
+.bow {
+  position: absolute;
+  left: 50%; bottom: 82%;
+  width: 56%;
+  transform: translateX(-50%);
+}
+.bow svg { display: block; width: 100%; height: auto; }
+.gift:not(.open):hover .box, .gift:not(.open):focus-visible .box { animation: jiggle 0.5s ease-in-out; }
+.gift:not(.open) .box { animation: idle 3.4s ease-in-out infinite; animation-delay: var(--d, 0s); }
+@keyframes idle { 0%, 88%, 100% { transform: none; } 92% { transform: rotate(-3deg); } 96% { transform: rotate(3deg); } }
+@keyframes jiggle { 25% { transform: rotate(-5deg) scale(1.03); } 75% { transform: rotate(5deg) scale(1.03); } }
+.gift.open .lid { transform: translate(18%, -150%) rotate(28deg); opacity: 0; }
+.card {
+  transform: rotateY(180deg);
+  background: var(--paper);
+  box-shadow: 0 10px 20px rgba(58, 30, 42, 0.22);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  border: 2px solid rgba(201, 88, 123, 0.25);
+}
+.card .ico { width: 58%; max-width: 84px; }
+.card .ico svg { display: block; width: 100%; height: auto; }
+.card h3 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(22px, 6.4vw, 30px); line-height: 1.05; color: var(--wood); }
+.card p { margin: 0; font-size: 12px; line-height: 1.4; color: var(--ink); }
+.gift.open { cursor: default; }
+.progress { min-height: 1.5em; }
+
+/* ---------- Scene 3: the question ---------- */
+.ask {
+  position: relative;
+  width: 100%;
+  min-height: 220px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 14px;
+  padding-top: 6px;
+}
+.yes { font-size: 18px; padding: 14px 34px; }
+.no {
+  background: var(--cream);
+  color: var(--wood);
+  border: 2px solid var(--wood);
+  box-shadow: none;
+  transition: transform 0.35s cubic-bezier(.3,1.3,.5,1), opacity 0.3s ease;
+}
+.no:hover { background: var(--cream); }
+.no.runaway { position: absolute; left: 0; top: 0; }
+.nope { min-height: 1.4em; font-weight: 800; color: var(--rose-deep); }
+
+/* ---------- Finale ---------- */
+.ticket {
+  width: min(340px, 100%);
+  background: var(--paper);
+  border-radius: 16px;
+  box-shadow: 0 16px 34px rgba(58, 30, 42, 0.28);
+  padding: 22px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+  position: relative;
+  animation: pop 0.7s cubic-bezier(.2,1.4,.4,1);
+}
+@keyframes pop { from { opacity: 0; transform: scale(0.85) rotate(-3deg); } }
+.ticket::before, .ticket::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 22px; height: 22px;
+  margin-top: -11px;
+  border-radius: 50%;
+  background: var(--wall);
+}
+.ticket::before { left: -11px; }
+.ticket::after { right: -11px; }
+.ticket .t-head { text-align: center; }
+.ticket .t-head .l-small { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--rose-deep); }
+.ticket .t-head h2 { margin-top: 2px; }
+.ticket ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; border-top: 2px dashed rgba(107,44,62,0.25); padding-top: 12px; }
+.ticket li { display: flex; gap: 10px; align-items: center; font-weight: 700; font-size: 15px; }
+.ticket li span.n { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--rose); color: var(--cream); display: grid; place-items: center; font-size: 13px; font-weight: 800; }
+.ticket .t-foot { margin: 0; text-align: center; font-size: 13px; font-weight: 700; color: var(--wood); opacity: 0.8; border-top: 2px dashed rgba(107,44,62,0.25); padding-top: 10px; }
+
+canvas.fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: 0.01s !important; transition-delay: 0s !important; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="back" href="index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+    Back to the library
+  </a>
+
+  <main class="stage" id="stage">
+
+    <!-- Scene 1 -->
+    <section class="scene" id="s1">
+      <p class="tiny">Something arrived for you</p>
+      <button class="envelope" id="envelope" type="button" aria-label="Open the envelope">
+        <span class="env-back"></span>
+        <span class="letter" aria-hidden="true">
+          <span class="l-small">You're invited</span>
+          <span class="l-big">A date night</span>
+          <span class="l-date">Monday 12 October</span>
+        </span>
+        <span class="env-front"></span>
+        <span class="env-name">For Charlotte</span>
+        <span class="env-flap">
+          <span class="seal"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#F8E3D6" d="M12 21s-7.5-4.6-9.5-9.3C1.1 8.3 3.3 4.5 7 4.5c2.1 0 3.6 1.2 5 3 1.4-1.8 2.9-3 5-3 3.7 0 5.9 3.8 4.5 7.2C19.5 16.4 12 21 12 21z"></path></svg></span>
+        </span>
+      </button>
+      <p class="tiny hint-tap" id="tapHint">Tap the envelope to open it</p>
+      <button class="btn" id="toGifts" type="button" hidden>What are we doing?</button>
+    </section>
+
+    <!-- Scene 2 -->
+    <section class="scene" id="s2" hidden>
+      <h2>Monday's plans</h2>
+      <p class="lead">Three little surprises. Open them in any order.</p>
+      <div class="gifts">
+        <button class="gift" type="button" style="--g:#E487A6;--ribbon:#FBF1EA;--d:0s" aria-label="Open the first gift">
+          <span class="order">First</span>
+          <span class="flipper">
+            <span class="face wrap"><span class="box"><span class="lid"><span class="bow"><svg viewBox="0 0 60 30" aria-hidden="true"><path d="M30 26 C16 30 2 24 6 12 C10 2 24 8 30 22 Z" fill="#FBF1EA"/><path d="M30 26 C44 30 58 24 54 12 C50 2 36 8 30 22 Z" fill="#F3DCCF"/><circle cx="30" cy="24" r="5" fill="#F8E3D6"/></svg></span></span></span></span>
+            <span class="face card">
+              <span class="ico"><svg viewBox="0 0 80 64" aria-hidden="true">
+                <path d="M30 14 q-6 -8 0 -12" stroke="#C9A99A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M40 12 q-6 -8 0 -11" stroke="#C9A99A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M50 14 q-6 -8 0 -12" stroke="#C9A99A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <ellipse cx="40" cy="44" rx="30" ry="12" fill="#F1E4DA"/>
+                <ellipse cx="40" cy="42" rx="22" ry="8" fill="#FFFFFF"/>
+                <ellipse cx="40" cy="40" rx="13" ry="5" fill="#DD8547"/>
+                <circle cx="35" cy="38" r="2.4" fill="#6F9A6B"/>
+                <circle cx="44" cy="39" r="2" fill="#C2464A"/>
+                <rect x="2" y="30" width="3.5" height="28" rx="1.7" fill="#B9A49A"/>
+                <path d="M74 30 v28" stroke="#B9A49A" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M71 30 v8 M77 30 v8" stroke="#B9A49A" stroke-width="2" stroke-linecap="round"/>
+              </svg></span>
+              <h3>Dinner for two</h3>
+              <p>We cook a lovely meal together, side by side.</p>
+            </span>
+          </span>
+        </button>
+
+        <button class="gift" type="button" style="--g:#8B6BA8;--ribbon:#F8E3D6;--d:0.4s" aria-label="Open the second gift">
+          <span class="order">Then</span>
+          <span class="flipper">
+            <span class="face wrap"><span class="box"><span class="lid"><span class="bow"><svg viewBox="0 0 60 30" aria-hidden="true"><path d="M30 26 C16 30 2 24 6 12 C10 2 24 8 30 22 Z" fill="#F8E3D6"/><path d="M30 26 C44 30 58 24 54 12 C50 2 36 8 30 22 Z" fill="#EBCFC2"/><circle cx="30" cy="24" r="5" fill="#FBF1EA"/></svg></span></span></span></span>
+            <span class="face card">
+              <span class="ico"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+                <rect x="2" y="3" width="12" height="3" fill="#6BAA4A"/>
+                <rect x="2" y="3" width="2" height="1" fill="#88C460"/><rect x="7" y="3" width="2" height="1" fill="#88C460"/><rect x="11" y="4" width="2" height="1" fill="#88C460"/>
+                <rect x="2" y="6" width="12" height="8" fill="#8B5E3C"/>
+                <rect x="2" y="6" width="1" height="2" fill="#6BAA4A"/><rect x="5" y="6" width="1" height="1" fill="#6BAA4A"/><rect x="9" y="6" width="1" height="2" fill="#6BAA4A"/><rect x="12" y="6" width="1" height="1" fill="#6BAA4A"/>
+                <rect x="4" y="9" width="1" height="1" fill="#6E4A2E"/><rect x="8" y="10" width="1" height="1" fill="#6E4A2E"/><rect x="11" y="12" width="1" height="1" fill="#6E4A2E"/><rect x="5" y="12" width="1" height="1" fill="#A47552"/><rect x="10" y="8" width="1" height="1" fill="#A47552"/>
+                <rect x="6" y="0" width="1" height="1" fill="#E487A6"/><rect x="8" y="0" width="1" height="1" fill="#E487A6"/><rect x="5" y="1" width="5" height="1" fill="#E487A6"/><rect x="6" y="2" width="3" height="1" fill="#E487A6"/>
+              </svg></span>
+              <h3>Minecraft</h3>
+              <p>Then we build our own little world together.</p>
+            </span>
+          </span>
+        </button>
+
+        <button class="gift" type="button" style="--g:#5A7DAF;--ribbon:#FBF1EA;--d:0.8s" aria-label="Open the third gift">
+          <span class="order">And finally</span>
+          <span class="flipper">
+            <span class="face wrap"><span class="box"><span class="lid"><span class="bow"><svg viewBox="0 0 60 30" aria-hidden="true"><path d="M30 26 C16 30 2 24 6 12 C10 2 24 8 30 22 Z" fill="#FBF1EA"/><path d="M30 26 C44 30 58 24 54 12 C50 2 36 8 30 22 Z" fill="#F3DCCF"/><circle cx="30" cy="24" r="5" fill="#F8E3D6"/></svg></span></span></span></span>
+            <span class="face card">
+              <span class="ico"><svg viewBox="0 0 80 64" aria-hidden="true">
+                <path d="M22 18 q-4 -6 0 -10 q5 -5 0 -8 q8 4 4 10 q-3 4 0 8 Z" fill="#E3BC55"/>
+                <rect x="17" y="18" width="14" height="22" rx="2" fill="#F7E7DD"/>
+                <rect x="17" y="18" width="14" height="4" rx="2" fill="#EBD3C6"/>
+                <path d="M58 20 q-3 -5 0 -8 q4 -4 0 -6 q6 3 3 8 q-2 3 0 6 Z" fill="#E3BC55"/>
+                <rect x="54" y="20" width="10" height="20" rx="2" fill="#F2D2DC"/>
+                <ellipse cx="40" cy="50" rx="36" ry="10" fill="#E9C0C6"/>
+                <circle cx="20" cy="46" r="5" fill="#FFFFFF" opacity="0.9"/>
+                <circle cx="29" cy="43" r="4" fill="#FFFFFF" opacity="0.9"/>
+                <circle cx="53" cy="44" r="5.5" fill="#FFFFFF" opacity="0.9"/>
+                <circle cx="62" cy="47" r="3.5" fill="#FFFFFF" opacity="0.9"/>
+                <path d="M40 34 c-3 -4 -9 -2 -7 3 c1 3 7 7 7 7 s6 -4 7 -7 c2 -5 -4 -7 -7 -3z" fill="#E487A6"/>
+              </svg></span>
+              <h3>Spa night</h3>
+              <p>Massages and a cozy spa night, just for you.</p>
+            </span>
+          </span>
+        </button>
+      </div>
+      <p class="tiny progress" id="progress" aria-live="polite">0 of 3 opened</p>
+      <button class="btn" id="toAsk" type="button" hidden>One last thing…</button>
+    </section>
+
+    <!-- Scene 3 -->
+    <section class="scene" id="s3" hidden>
+      <h2>So, Charlotte…</h2>
+      <p class="lead">Will you be my date on Monday?</p>
+      <div class="ask" id="ask">
+        <button class="btn yes" id="yes" type="button">Yes!</button>
+        <button class="btn no" id="no" type="button">No</button>
+      </div>
+      <p class="nope" id="nope" aria-live="polite"></p>
+    </section>
+
+    <!-- Finale -->
+    <section class="scene" id="s4" hidden>
+      <div class="ticket" role="group" aria-label="Your date night ticket">
+        <div class="t-head">
+          <span class="l-small">It's a date</span>
+          <h2>Monday 12 October</h2>
+        </div>
+        <ol>
+          <li><span class="n">1</span>Cooking a nice meal together</li>
+          <li><span class="n">2</span>Playing Minecraft</li>
+          <li><span class="n">3</span>Massage and spa night</li>
+        </ol>
+        <p class="t-foot">Admit one Charlotte. No dress code. Cuddles included.</p>
+      </div>
+      <a class="btn" href="index.html" style="text-decoration:none">Back to your library</a>
+    </section>
+  </main>
+</div>
+
+<canvas class="fx" id="fx" aria-hidden="true"></canvas>
+
+<script>
+(function () {
+  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  function show(id) {
+    ['s1', 's2', 's3', 's4'].forEach(function (s) { document.getElementById(s).hidden = s !== id; });
+    var el = document.getElementById(id);
+    el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter');
+    var f = el.querySelector('button, a');
+    if (f) f.focus({ preventScroll: true });
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- Hearts and confetti ---------- */
+  var cv = document.getElementById('fx'), cx = cv.getContext('2d'), parts = [], running = false;
+  var COLS = ['#E487A6', '#F2A7BF', '#C9587B', '#F7C2D2', '#C99060', '#FBF1EA', '#8B6BA8'];
+  function size() { var d = window.devicePixelRatio || 1; cv.width = innerWidth * d; cv.height = innerHeight * d; cx.setTransform(d, 0, 0, d, 0, 0); }
+  size(); addEventListener('resize', size);
+  function heart(c, x, y, s) {
+    c.beginPath();
+    c.moveTo(x, y + s * 0.3);
+    c.bezierCurveTo(x, y, x - s * 0.5, y, x - s * 0.5, y + s * 0.3);
+    c.bezierCurveTo(x - s * 0.5, y + s * 0.6, x, y + s * 0.8, x, y + s);
+    c.bezierCurveTo(x, y + s * 0.8, x + s * 0.5, y + s * 0.6, x + s * 0.5, y + s * 0.3);
+    c.bezierCurveTo(x + s * 0.5, y, x, y, x, y + s * 0.3);
+    c.fill();
+  }
+  function burst(x, y, n, opts) {
+    if (reduce) return;
+    opts = opts || {};
+    for (var i = 0; i < n; i++) {
+      var a = (opts.up ? -Math.PI / 2 : 0) + (Math.random() * 2 - 1) * (opts.spread || Math.PI);
+      var v = (opts.speed || 6) * (0.5 + Math.random());
+      parts.push({
+        x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - (opts.lift || 0),
+        s: 8 + Math.random() * 10, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.2,
+        c: COLS[Math.floor(Math.random() * COLS.length)], life: 0,
+        max: 90 + Math.random() * 60, h: Math.random() < (opts.hearts == null ? 0.6 : opts.hearts)
+      });
+    }
+    if (!running) { running = true; requestAnimationFrame(tick); }
+  }
+  function rain(n) {
+    if (reduce) return;
+    for (var i = 0; i < n; i++) {
+      parts.push({
+        x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.6,
+        vx: (Math.random() - 0.5) * 1.5, vy: 1.5 + Math.random() * 2.5,
+        s: 8 + Math.random() * 10, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.15,
+        c: COLS[Math.floor(Math.random() * COLS.length)], life: 0, max: 400, h: Math.random() < 0.55, fall: true
+      });
+    }
+    if (!running) { running = true; requestAnimationFrame(tick); }
+  }
+  function tick() {
+    cx.clearRect(0, 0, innerWidth, innerHeight);
+    parts = parts.filter(function (p) { return p.life < p.max && p.y < innerHeight + 40; });
+    parts.forEach(function (p) {
+      p.life++;
+      p.x += p.vx + (p.fall ? Math.sin((p.life + p.r * 30) / 20) * 0.6 : 0);
+      p.y += p.vy;
+      if (!p.fall) { p.vy += 0.16; p.vx *= 0.985; }
+      p.r += p.vr;
+      var alpha = p.fall ? 1 : Math.max(0, 1 - p.life / p.max);
+      cx.save();
+      cx.globalAlpha = alpha;
+      cx.fillStyle = p.c;
+      cx.translate(p.x, p.y);
+      cx.rotate(p.r);
+      if (p.h) heart(cx, 0, -p.s / 2, p.s);
+      else cx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+      cx.restore();
+    });
+    if (parts.length) requestAnimationFrame(tick);
+    else { running = false; cx.clearRect(0, 0, innerWidth, innerHeight); }
+  }
+  function centre(el) { var r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
+
+  /* ---------- Scene 1: envelope ---------- */
+  var env = document.getElementById('envelope');
+  env.addEventListener('click', function () {
+    if (env.classList.contains('open')) return;
+    env.classList.add('open');
+    env.setAttribute('aria-label', 'Your invitation: a date night on Monday 12 October');
+    document.getElementById('tapHint').hidden = true;
+    setTimeout(function () {
+      var c = centre(env);
+      burst(c.x, c.y - 40, 26, { up: true, spread: 1.1, speed: 7, hearts: 0.9 });
+      var b = document.getElementById('toGifts');
+      b.hidden = false;
+      b.classList.add('scene', 'enter');
+    }, reduce ? 0 : 1100);
+  });
+  document.getElementById('toGifts').addEventListener('click', function () { show('s2'); });
+
+  /* ---------- Scene 2: gifts ---------- */
+  var opened = 0, gifts = document.querySelectorAll('.gift');
+  Array.prototype.forEach.call(gifts, function (g) {
+    g.addEventListener('click', function () {
+      if (g.classList.contains('open')) return;
+      g.classList.add('open');
+      g.setAttribute('aria-label', g.querySelector('h3').textContent + ': ' + g.querySelector('.card p').textContent);
+      var c = centre(g);
+      burst(c.x, c.y - 20, 22, { up: true, spread: 0.9, speed: 6.5 });
+      opened++;
+      document.getElementById('progress').textContent = opened < 3 ? opened + ' of 3 opened' : 'All opened!';
+      if (opened === 3) {
+        setTimeout(function () {
+          var b = document.getElementById('toAsk');
+          b.hidden = false;
+          b.classList.add('scene', 'enter');
+        }, reduce ? 0 : 1200);
+      }
+    });
+  });
+  document.getElementById('toAsk').addEventListener('click', function () { show('s3'); });
+
+  /* ---------- Scene 3: the question (No is a little shy) ---------- */
+  var ask = document.getElementById('ask'), no = document.getElementById('no'), nope = document.getElementById('nope');
+  var dodges = 0, surrendered = false;
+  var LINES = ['Nice try', 'Hmm, are you sure?', 'That button seems broken', 'Nope, not an option', 'The dogs say yes', 'Okay, last chance…'];
+  function dodge(e) {
+    if (e) e.preventDefault();
+    if (surrendered) return;
+    dodges++;
+    nope.textContent = LINES[Math.min(dodges - 1, LINES.length - 1)];
+    if (dodges >= 6) {
+      no.textContent = 'Yes!';
+      no.classList.remove('no', 'runaway');
+      no.style.transform = '';
+      surrendered = true;
+      no.removeEventListener('click', dodgeClick);
+      no.addEventListener('click', yes);
+      nope.textContent = 'See? Even that button agrees.';
+      return;
+    }
+    var box = ask.getBoundingClientRect();
+    var bw = no.offsetWidth, bh = no.offsetHeight;
+    if (!no.classList.contains('runaway')) no.classList.add('runaway');
+    var yr = document.getElementById('yes').getBoundingClientRect();
+    var x, y, tries = 0;
+    do {
+      x = Math.random() * Math.max(0, box.width - bw);
+      y = Math.random() * Math.max(0, box.height - bh);
+      tries++;
+    } while (tries < 20 && x + box.left < yr.right + 8 && x + bw + box.left > yr.left - 8 && y + box.top < yr.bottom + 8 && y + bh + box.top > yr.top - 8);
+    no.style.transform = 'translate(' + x + 'px,' + y + 'px) rotate(' + ((Math.random() * 2 - 1) * 12) + 'deg) scale(' + Math.max(0.6, 1 - dodges * 0.08) + ')';
+  }
+  function dodgeClick(e) { e.preventDefault(); dodge(); }
+  no.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') dodge(e); });
+  no.addEventListener('click', dodgeClick);
+
+  function yes() {
+    show('s4');
+    var c = { x: innerWidth / 2, y: innerHeight * 0.35 };
+    burst(c.x, c.y, 60, { speed: 9, hearts: 0.6 });
+    setTimeout(function () { rain(90); }, reduce ? 0 : 250);
+  }
+  document.getElementById('yes').addEventListener('click', yes);
+})();
+</script>
+</body>
+</html>

@@ -6,7 +6,7 @@
   var NAMES = { red: 'Red', orange: 'Orange', yellow: 'Yellow', green: 'Green', blue: 'Blue', purple: 'Purple', pink: 'Pink' };
   var KEYS = Object.keys(FAM);
   /* How often each colour turns up: lots of pink (her favourite), fewer yellows */
-  var WEIGHTS = { red: 1, orange: 1, yellow: 0.5, green: 1, blue: 1, purple: 1, pink: 3 };
+  var WEIGHTS = { red: 1, orange: 1, yellow: 0.5, green: 0, blue: 1, purple: 1, pink: 3 };
   var WEIGHT_SUM = KEYS.reduce(function (s, k) { return s + WEIGHTS[k]; }, 0);
   function pickKey() {
     var r = Math.random() * WEIGHT_SUM;
@@ -394,6 +394,9 @@
       if (s && Array.isArray(s.shelves)) {
         /* An older save with a different number of shelves: keep her count, start a fresh bookcase */
         if (s.shelves.length !== SHELVES) s.shelves = [];
+        /* A save that still holds a colour we no longer use (like green): start a fresh bookcase */
+        var retired = s.shelves.some(function (l) { return (l || []).some(function (b) { return !WEIGHTS[b.k]; }); });
+        if (retired) s.shelves = [];
         return s;
       }
     } catch (_) {}
@@ -675,6 +678,21 @@
       petTimeout = setTimeout(function () { dog.classList.remove('petted'); }, 2200);
     });
   });
+
+  /* ---------- Burger menu ---------- */
+  var menu = document.getElementById('menu');
+  var burger = document.getElementById('burger');
+  var panel = document.getElementById('menuPanel');
+  function setMenu(open) {
+    panel.hidden = !open;
+    burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    if (open) { menu.classList.add('seen'); try { localStorage.setItem('charlottes-library-menu-seen', '1'); } catch (_) {} }
+  }
+  try { if (localStorage.getItem('charlottes-library-menu-seen')) menu.classList.add('seen'); } catch (_) {}
+  burger.addEventListener('click', function () { setMenu(panel.hidden); });
+  document.addEventListener('pointerdown', function (e) { if (!panel.hidden && !menu.contains(e.target)) setMenu(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { setMenu(false); burger.focus(); } });
 
   /* ---------- Start ---------- */
   var resizeQueued = false;
