@@ -1,0 +1,374 @@
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; }
+
+/* Layout: a single cozy room. Phone: plaque, bookcase, floor with rug and dogs stacked. Wide: bookcase left, rainy window and rug right. */
+:root {
+  --wall: #EBCBCD;
+  --wall-stripe: rgba(255, 255, 255, 0.2);
+  --wood: #6B2C3E;
+  --wood-dark: #4E1E2D;
+  --wood-light: #8A3E52;
+  --brass: #C99060;
+  --cream: #FBF1EA;
+  --cream-ink: #F8E3D6;
+  --ink: #3A1E2A;
+  --floor: #D7A69F;
+  --skirting: #C28C86;
+  --rug: #B66F7E;
+  --rug-edge: #C98592;
+  --rug-trim: #E9C0C6;
+  --font-display: 'Pinyon Script', 'Snell Roundhand', 'Apple Chancery', cursive;
+  --font-body: 'Nunito', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--wall);
+  color: var(--ink);
+  font-family: var(--font-body);
+  overscroll-behavior: none;
+}
+.app {
+  position: relative;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas: "top" "case" "side";
+  overflow: hidden;
+  background-color: var(--wall);
+  background-image: repeating-linear-gradient(90deg, var(--wall-stripe) 0 14px, rgba(255,255,255,0) 14px 28px);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.app.dragging, .app.dragging * { cursor: grabbing; }
+
+/* Header */
+.top {
+  grid-area: top;
+  position: relative;
+  z-index: 2;
+  padding: 16px 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.plaque {
+  background: var(--wood);
+  border: 3px solid var(--brass);
+  border-radius: 12px;
+  padding: 2px 26px 8px;
+  box-shadow: 0 6px 14px rgba(58, 30, 42, 0.25);
+  transition: box-shadow 1.2s ease;
+}
+.plaque h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(30px, 8.6vw, 46px);
+  line-height: 1.15;
+  color: var(--cream-ink);
+  white-space: nowrap;
+}
+.pills {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--wood);
+}
+.pill.card { background: var(--cream); }
+.pill.soft { background: rgba(107, 44, 62, 0.12); }
+.pill .num { font-variant-numeric: tabular-nums; }
+
+/* Bookcase */
+.case-wrap {
+  grid-area: case;
+  position: relative;
+  z-index: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 0 16px;
+}
+.case {
+  --u: 1;
+  width: 100%;
+  max-width: 640px;
+  box-sizing: border-box;
+  background: var(--wood);
+  border-radius: 12px 12px 4px 4px;
+  padding: 10px;
+  box-shadow: 0 10px 22px rgba(58, 30, 42, 0.3);
+}
+.shelf {
+  position: relative;
+  height: calc(var(--u) * 84px + 8px);
+  box-sizing: border-box;
+  padding: 8px 8px 0;
+  background: var(--wood-dark);
+  box-shadow: inset 0 12px 14px -10px rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  overflow: hidden;
+}
+.plank {
+  height: 10px;
+  background: var(--wood-light);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+/* Books */
+.book {
+  flex: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 2px 2px 0 0;
+  background-color: var(--c);
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: inset -3px 0 0 rgba(0,0,0,0.14), inset 2px 0 0 rgba(255,255,255,0.16), 0 0 0 0 rgba(255,214,170,0);
+  transition: box-shadow 0.6s ease;
+}
+.book.v0 { background: linear-gradient(to bottom, rgba(0,0,0,0) 9%, var(--cd) 9% 11.5%, rgba(0,0,0,0) 11.5% 88.5%, var(--cd) 88.5% 91%, rgba(0,0,0,0) 91%), var(--c); }
+.book.v1 { background: linear-gradient(to bottom, rgba(0,0,0,0) 20%, rgba(255,246,236,0.55) 20% 33%, rgba(0,0,0,0) 33%), var(--c); }
+.book.v2 { background: linear-gradient(to bottom, rgba(0,0,0,0) 12%, rgba(242,205,150,0.9) 12% 14%, rgba(0,0,0,0) 14% 17%, rgba(242,205,150,0.9) 17% 19%, rgba(0,0,0,0) 19% 84%, rgba(242,205,150,0.9) 84% 86%, rgba(0,0,0,0) 86%), var(--c); }
+.book.v3 { background: linear-gradient(to bottom, var(--cl) 0 7%, rgba(0,0,0,0) 7% 76%, var(--cd) 76%), var(--c); }
+.book.glow {
+  box-shadow: inset -3px 0 0 rgba(0,0,0,0.14), inset 2px 0 0 rgba(255,255,255,0.16), 0 0 calc(var(--u) * 12px) 2px rgba(255,214,170,0.75);
+}
+.book:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; position: relative; z-index: 2; }
+.book.floating {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 40;
+  pointer-events: none;
+  will-change: transform;
+  box-shadow: inset -3px 0 0 rgba(0,0,0,0.14), inset 2px 0 0 rgba(255,255,255,0.16), 0 18px 24px rgba(58,30,42,0.4);
+}
+.gap {
+  flex: none;
+  box-sizing: border-box;
+  border: 1.5px dashed rgba(248, 227, 214, 0.75);
+  border-bottom: 0;
+  border-radius: 2px 2px 0 0;
+  background: rgba(248, 227, 214, 0.08);
+}
+
+/* Floor, rug and dogs */
+.floor { display: none; }
+.side {
+  grid-area: side;
+  position: relative;
+  z-index: 1;
+  background-color: var(--floor);
+  background-image: repeating-linear-gradient(0deg, rgba(107,44,62,0.08) 0 1px, rgba(0,0,0,0) 1px 34px);
+  border-top: 8px solid var(--skirting);
+  padding: 10px 16px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.window, .sill, .spacer { display: none; }
+.rug {
+  position: relative;
+  width: min(330px, 92%);
+  height: 118px;
+  flex: none;
+}
+.rug::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 8px; bottom: 0;
+  border-radius: 50%;
+  background: var(--rug);
+  box-shadow: inset 0 0 0 6px var(--rug-edge), inset 0 0 0 10px var(--rug-trim);
+}
+.dog {
+  position: absolute;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 40%;
+}
+.dog svg { display: block; width: 100%; height: auto; overflow: visible; }
+.dog:focus-visible { outline: 2px solid var(--wood); outline-offset: 2px; }
+.dog.jack { left: 6%; bottom: 10px; width: 42%; }
+.dog.schnauzer { right: 4%; bottom: 10px; width: 40%; }
+.breathe { transform-box: fill-box; transform-origin: 50% 100%; animation: breathe 4.6s ease-in-out infinite; }
+.schnauzer .breathe { animation-duration: 3.9s; animation-delay: -1.7s; }
+@keyframes breathe { 50% { transform: scale(1.025, 1.06); } }
+.tail { transform-box: view-box; animation: wag 8s ease-in-out infinite; }
+.jack .tail { transform-origin: 108px 44px; }
+.schnauzer .tail { transform-origin: 24px 40px; animation-delay: -3s; }
+@keyframes wag {
+  0%, 80%, 100% { transform: rotate(0deg); }
+  84% { transform: rotate(-9deg); }
+  88% { transform: rotate(5deg); }
+  92% { transform: rotate(-7deg); }
+  96% { transform: rotate(2deg); }
+}
+/* Petting: hover (or a tap on touch) makes the tail go */
+.dog:hover .tail, .dog.petted .tail { animation: wagfast 0.32s ease-in-out infinite; }
+@keyframes wagfast { 0%, 100% { transform: rotate(-16deg); } 50% { transform: rotate(14deg); } }
+.dog:hover .breathe, .dog.petted .breathe { animation-duration: 1.6s; }
+.dog .eye-open { opacity: 0; transition: opacity 0.2s ease; }
+.dog .eye-shut { transition: opacity 0.2s ease; }
+.dog:hover .eye-open, .dog.petted .eye-open { opacity: 1; }
+.dog:hover .eye-shut, .dog.petted .eye-shut { opacity: 0; }
+.dog:hover .zz, .dog.petted .zz { opacity: 0 !important; }
+.zz { animation: zz 5s ease-in-out infinite; transition: opacity 0.2s; }
+@keyframes zz { 0%, 100% { opacity: 0.25; transform: translateY(2px); } 50% { opacity: 0.75; transform: translateY(-3px); } }
+.heart { position: absolute; left: 0; top: 0; width: 20px; height: 20px; pointer-events: none; z-index: 3; }
+.heart svg { width: 100%; height: 100%; display: block; }
+.woof {
+  position: absolute;
+  left: 0; top: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: var(--cream);
+  color: var(--wood);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: 0 4px 10px rgba(58, 30, 42, 0.2);
+  white-space: nowrap;
+}
+
+.happy {
+  position: relative;
+  z-index: 2;
+  margin-top: -16px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wood);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 800;
+  padding: 11px 24px;
+  box-shadow: 0 6px 14px rgba(58, 30, 42, 0.28);
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.15s ease;
+}
+.happy:hover { background: #5A2333; }
+.happy:active { transform: scale(0.97); }
+.happy:focus-visible { outline: 3px solid var(--cream); outline-offset: 2px; }
+.happy:disabled { cursor: default; }
+.hint {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wood);
+  opacity: 0.75;
+  text-align: center;
+}
+
+/* Reshuffle */
+.happy svg { flex: none; }
+.happy { display: inline-flex; align-items: center; gap: 8px; }
+.app.shuffling .happy svg { animation: spin 0.9s cubic-bezier(.4,0,.2,1); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.app.shuffling .case { animation: rattle 0.9s ease-in-out; }
+@keyframes rattle {
+  0%, 100% { transform: none; }
+  15% { transform: rotate(-0.6deg); }
+  30% { transform: rotate(0.5deg); }
+  45% { transform: rotate(-0.35deg); }
+  60% { transform: rotate(0.2deg); }
+}
+
+/* Wider screens: bookcase left, window and dogs right */
+@media (min-width: 900px) and (min-height: 560px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "top top" "case side";
+    column-gap: 40px;
+    padding-inline: 48px;
+    background-image: repeating-linear-gradient(90deg, var(--wall-stripe) 0 18px, rgba(255,255,255,0) 18px 36px);
+  }
+  .top { padding: 22px 0 14px; }
+  .pills { max-width: none; font-size: 14px; }
+  .pill { font-size: 14px; padding: 8px 16px; }
+  .floor {
+    display: block;
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 150px;
+    z-index: 0;
+    background-color: var(--floor);
+    background-image: repeating-linear-gradient(0deg, rgba(107,44,62,0.08) 0 1px, rgba(0,0,0,0) 1px 40px);
+    border-top: 10px solid var(--skirting);
+  }
+  .case-wrap { padding: 0 0 54px; justify-content: flex-end; }
+  .side {
+    background: none;
+    border: 0;
+    padding: 6px 0 22px;
+    gap: 10px;
+  }
+  .window {
+    display: block;
+    position: relative;
+    width: 100%;
+    max-width: 280px;
+    aspect-ratio: 1.2;
+    max-height: 32vh;
+    box-sizing: border-box;
+    border: 12px solid var(--wood-light);
+    border-radius: 50% 50% 6px 6px / 42% 42% 6px 6px;
+    background: linear-gradient(to bottom, #7D90B1, #B7A5C2);
+    overflow: hidden;
+    box-shadow: 0 8px 18px rgba(58, 30, 42, 0.22);
+  }
+  .rain {
+    position: absolute;
+    left: 0; right: 0; top: -60px; bottom: 0;
+    background-image: repeating-linear-gradient(105deg, rgba(255,255,255,0) 0 22px, rgba(255,255,255,0.38) 22px 23px, rgba(255,255,255,0) 23px 41px);
+    animation: rain 1.3s linear infinite;
+  }
+  @keyframes rain { to { transform: translateY(60px); } }
+  .mullion-v { position: absolute; left: 50%; top: 0; bottom: 0; width: 8px; margin-left: -4px; background: var(--wood-light); }
+  .mullion-h { position: absolute; left: 0; right: 0; top: 56%; height: 8px; background: var(--wood-light); }
+  .sill { display: block; width: calc(100% + 24px); max-width: 304px; height: 14px; margin-top: -10px; background: var(--wood-light); border-radius: 3px; box-shadow: 0 4px 6px rgba(58,30,42,0.2); }
+  .spacer { display: block; flex: 1; }
+  .rug { width: 100%; height: 132px; }
+  .happy { font-size: 16px; padding: 12px 28px; min-height: 48px; }
+  .hint { font-size: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breathe, .tail, .zz, .rain, .case, .happy svg { animation: none !important; }
+  .book { transition: none; }
+}

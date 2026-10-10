@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#EBCBCD">
+  <title>Charlotte's Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Nunito:wght@400;600;700;800&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app" id="app">
+  <div class="floor" aria-hidden="true"></div>
+
+  <header class="top">
+    <div class="plaque"><h1>Charlotte's Library</h1></div>
+    <div class="pills">
+      <div class="pill card">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M7 10h6M7 14h10"></path></svg>
+        <span>Library card · <span class="num" id="count">0 books moved</span></span>
+      </div>
+      <div class="pill soft">Any order you like</div>
+    </div>
+  </header>
+
+  <main class="case-wrap" id="caseWrap">
+    <div class="case" id="case" role="group" aria-label="Bookcase. Drag books to rearrange them, or focus a book and use the arrow keys.">
+      <div class="shelf" data-shelf="0"></div><div class="plank"></div>
+      <div class="shelf" data-shelf="1"></div><div class="plank"></div>
+      <div class="shelf" data-shelf="2"></div><div class="plank"></div>
+      <div class="shelf" data-shelf="3"></div><div class="plank"></div>
+    </div>
+  </main>
+
+  <aside class="side">
+    <div class="window" aria-hidden="true">
+      <div class="rain"></div>
+      <div class="mullion-v"></div>
+      <div class="mullion-h"></div>
+    </div>
+    <div class="sill" aria-hidden="true"></div>
+    <div class="spacer"></div>
+    <div class="rug" id="rug">
+      <button class="dog jack" type="button" aria-label="Pet the Jack Russell">
+        <svg viewBox="0 0 130 80" aria-hidden="true">
+          <g class="tail">
+            <path d="M106 44 C112 34 116 26 122 20" stroke="#E2D6CB" stroke-width="9" stroke-linecap="round" fill="none"></path>
+            <path d="M106 44 C112 34 116 26 122 20" stroke="#F7F2EC" stroke-width="6" stroke-linecap="round" fill="none"></path>
+            <path d="M119 23 L122 20" stroke="#C98A4B" stroke-width="6" stroke-linecap="round"></path>
+          </g>
+          <g class="breathe">
+            <ellipse cx="72" cy="53" rx="44" ry="21" fill="#F7F2EC" stroke="#E2D6CB" stroke-width="1.5"></ellipse>
+            <ellipse cx="88" cy="43" rx="15" ry="10" fill="#C98A4B"></ellipse>
+            <ellipse cx="68" cy="66" rx="30" ry="6" fill="#ECE3D9"></ellipse>
+            <ellipse cx="44" cy="69" rx="9" ry="4.5" fill="#F7F2EC" stroke="#E2D6CB" stroke-width="1.2"></ellipse>
+            <ellipse cx="31" cy="49" rx="19" ry="16" fill="#F7F2EC" stroke="#E2D6CB" stroke-width="1.5"></ellipse>
+            <path d="M22 38 C28 30 44 30 48 42 C46 50 36 52 26 49 C22 46 20 42 22 38 Z" fill="#C98A4B"></path>
+            <path d="M38 32 L50 29 L46 42 Z" fill="#8F5A2C"></path>
+            <path d="M25 33 L19 28 L20 39 Z" fill="#8F5A2C"></path>
+            <ellipse cx="15" cy="55" rx="11" ry="7" fill="#FBF8F3" stroke="#E2D6CB" stroke-width="1.2"></ellipse>
+            <circle cx="5" cy="54" r="3" fill="#3A1E2A"></circle>
+            <path class="eye-shut" d="M25 44 q4 3 8 0" stroke="#3A1E2A" stroke-width="1.8" fill="none" stroke-linecap="round"></path>
+            <g class="eye-open"><circle cx="29" cy="44" r="2.6" fill="#3A1E2A"></circle><circle cx="29.9" cy="43.1" r="0.8" fill="#FBF1EA"></circle></g>
+            <path d="M10 60 q4 3 8 1" stroke="#3A1E2A" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.5"></path>
+          </g>
+          <text class="zz" x="44" y="18" font-family="Nunito, sans-serif" font-size="13" font-weight="800" fill="#6B2C3E">z z</text>
+        </svg>
+      </button>
+      <button class="dog schnauzer" type="button" aria-label="Pet the miniature schnauzer">
+        <svg viewBox="0 0 118 72" aria-hidden="true">
+          <g class="tail"><ellipse cx="18" cy="37" rx="7" ry="3.5" fill="#6E6A6E" transform="rotate(-20 18 37)"></ellipse></g>
+          <g class="breathe">
+            <ellipse cx="58" cy="46" rx="42" ry="19" fill="#8C878B"></ellipse>
+            <ellipse cx="60" cy="58" rx="34" ry="7" fill="#A8A3A6" opacity="0.6"></ellipse>
+            <ellipse cx="88" cy="42" rx="17" ry="15" fill="#9A9599"></ellipse>
+            <path d="M78 29 L92 26 L86 39 Z" fill="#6E6A6E"></path>
+            <ellipse cx="102" cy="51" rx="12" ry="8" fill="#D8D3D4"></ellipse>
+            <ellipse cx="96" cy="63" rx="10" ry="4" fill="#D8D3D4"></ellipse>
+            <path d="M85 37 l9 -2" stroke="#E6E2E3" stroke-width="3.2" stroke-linecap="round"></path>
+            <path class="eye-shut" d="M86 42 q3 2 6 0" stroke="#2E2A2D" stroke-width="1.6" fill="none" stroke-linecap="round"></path>
+            <g class="eye-open"><circle cx="89" cy="42" r="2.3" fill="#2E2A2D"></circle><circle cx="89.8" cy="41.2" r="0.7" fill="#FBF1EA"></circle></g>
+            <circle cx="112" cy="48" r="2.8" fill="#2E2A2D"></circle>
+          </g>
+        </svg>
+      </button>
+    </div>
+    <button class="happy" id="reshuffle" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h3.5c2 0 3.3.9 4.4 2.6l2.2 3.8c1.1 1.7 2.4 2.6 4.4 2.6H21"></path><path d="M3 17h3.5c1.6 0 2.7-.6 3.6-1.7"></path><path d="M21 7h-3.5c-1.6 0-2.7.6-3.6 1.7"></path><path d="M18 4l3 3-3 3"></path><path d="M18 14l3 3-3 3"></path></svg>Reshuffle</button>
+    <p class="hint">Drag any book anywhere. The others make room.</p>
+  </aside>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
