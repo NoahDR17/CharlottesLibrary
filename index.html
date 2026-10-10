@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#EBCBCD">
   <title>Charlotte's Library</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,7 +30,6 @@
       <div class="shelf" data-shelf="0"></div><div class="plank"></div>
       <div class="shelf" data-shelf="1"></div><div class="plank"></div>
       <div class="shelf" data-shelf="2"></div><div class="plank"></div>
-      <div class="shelf" data-shelf="3"></div><div class="plank"></div>
     </div>
   </main>
 
@@ -86,7 +85,10 @@
         </svg>
       </button>
     </div>
-    <button class="happy" id="reshuffle" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h3.5c2 0 3.3.9 4.4 2.6l2.2 3.8c1.1 1.7 2.4 2.6 4.4 2.6H21"></path><path d="M3 17h3.5c1.6 0 2.7-.6 3.6-1.7"></path><path d="M21 7h-3.5c-1.6 0-2.7.6-3.6 1.7"></path><path d="M18 4l3 3-3 3"></path><path d="M18 14l3 3-3 3"></path></svg>Reshuffle</button>
+    <div class="actions">
+      <button class="happy" id="reshuffle" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h3.5c2 0 3.3.9 4.4 2.6l2.2 3.8c1.1 1.7 2.4 2.6 4.4 2.6H21"></path><path d="M3 17h3.5c1.6 0 2.7-.6 3.6-1.7"></path><path d="M21 7h-3.5c-1.6 0-2.7.6-3.6 1.7"></path><path d="M18 4l3 3-3 3"></path><path d="M18 14l3 3-3 3"></path></svg>Reshuffle</button>
+      <button class="reset" id="resetCount" type="button" aria-live="polite"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg><span>Reset count</span></button>
+    </div>
     <p class="hint">I love you always</p>
   </aside>
 

@@ -22,7 +22,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
   --font-body: 'Nunito', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
   color-scheme: light;
 }
-html, body { height: 100%; }
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 body {
   margin: 0;
   background: var(--wall);
@@ -37,6 +37,7 @@ body {
   grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-areas: "top" "case" "side";
   overflow: hidden;
+  touch-action: none;
   background-color: var(--wall);
   background-image: repeating-linear-gradient(90deg, var(--wall-stripe) 0 14px, rgba(255,255,255,0) 14px 28px);
   -webkit-user-select: none;
@@ -264,10 +265,18 @@ body {
   white-space: nowrap;
 }
 
-.happy {
+.actions {
   position: relative;
   z-index: 2;
   margin-top: -16px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.happy {
+  position: relative;
   min-height: 44px;
   border: 0;
   border-radius: 999px;
@@ -285,6 +294,29 @@ body {
 .happy:active { transform: scale(0.97); }
 .happy:focus-visible { outline: 3px solid var(--cream); outline-offset: 2px; }
 .happy:disabled { cursor: default; }
+.reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  border: 2px solid var(--wood);
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--wood);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 800;
+  padding: 8px 16px;
+  box-shadow: 0 6px 14px rgba(58, 30, 42, 0.18);
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease, transform 0.15s ease;
+}
+.reset svg { flex: none; transition: transform 0.5s ease; }
+.reset:hover { background: #F6E2DA; }
+.reset:active { transform: scale(0.97); }
+.reset:focus-visible { outline: 3px solid var(--cream); outline-offset: 2px; }
+.reset.confirm { background: var(--wood); color: var(--cream); }
+.reset.done svg { transform: rotate(-360deg); }
 .hint {
   margin: 0;
   font-size: 12px;
@@ -370,5 +402,6 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .breathe, .tail, .zz, .rain, .case, .happy svg { animation: none !important; }
+  .reset svg { transition: none; }
   .book { transition: none; }
 }

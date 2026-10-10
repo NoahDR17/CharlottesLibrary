@@ -5,7 +5,15 @@
   };
   var NAMES = { red: 'Red', orange: 'Orange', yellow: 'Yellow', green: 'Green', blue: 'Blue', purple: 'Purple', pink: 'Pink' };
   var KEYS = Object.keys(FAM);
-  var SHELVES = 4, AREA = 84, PAD = 8, PLANK = 10, FRAME = 10, GAP = 1, MAXW = 640;
+  /* How often each colour turns up: lots of pink (her favourite), fewer yellows */
+  var WEIGHTS = { red: 1, orange: 1, yellow: 0.5, green: 1, blue: 1, purple: 1, pink: 3 };
+  var WEIGHT_SUM = KEYS.reduce(function (s, k) { return s + WEIGHTS[k]; }, 0);
+  function pickKey() {
+    var r = Math.random() * WEIGHT_SUM;
+    for (var i = 0; i < KEYS.length; i++) { r -= WEIGHTS[KEYS[i]]; if (r < 0) return KEYS[i]; }
+    return KEYS[KEYS.length - 1];
+  }
+  var SHELVES = 3, AREA = 84, PAD = 8, PLANK = 10, FRAME = 10, GAP = 1, MAXW = 640;
   var STORE = 'charlottes-library-v1';
   var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
@@ -29,7 +37,7 @@
     var tome = Math.random() < 0.08;
     return {
       id: state.nextId++, k: k, dl: rand(13) - 6,
-      w: tome ? 24 + rand(5) : 15 + rand(7),
+      w: tome ? 25 + rand(5) : 17 + rand(6),
       h: tome ? 70 + rand(11) : 56 + rand(25),
       v: rand(4)
     };
@@ -46,7 +54,7 @@
     };
   }
 
-  function clampU(x) { return Math.max(0.6, Math.min(1.7, x)); }
+  function clampU(x) { return Math.max(0.6, Math.min(2.2, x)); }
   function widthOf(list, uu) { return list.reduce(function (s, b) { return s + b.w * uu + GAP; }, 0); }
 
   function newShelves() {
@@ -57,9 +65,9 @@
     for (var i = 0; i < SHELVES; i++) {
       var list = [], a = '', b = '';
       for (var guard = 0; guard < 200; guard++) {
-        var k = KEYS[rand(KEYS.length)];
+        var k = pickKey();
         var tries = 0;
-        while (k === a && a === b && tries++ < 10) k = KEYS[rand(KEYS.length)];
+        while (k === a && a === b && tries++ < 10) k = pickKey();
         var bk = makeBook(k);
         if (widthOf(list, uu) + bk.w * uu + GAP > target) break;
         list.push(bk);
@@ -216,6 +224,13 @@
   }
 
   /* ---------- Dragging ---------- */
+  /* Keep the screen still: no scrolling, rubber-banding or pinch-zoom from a stray finger */
+  document.addEventListener('touchmove', function (e) { if (e.cancelable) e.preventDefault(); }, { passive: false });
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (t) {
+    document.addEventListener(t, function (e) { e.preventDefault(); }, { passive: false });
+  });
+  caseEl.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
   caseEl.addEventListener('pointerdown', function (e) {
     var el = e.target.closest('.book');
     if (!el || drag || shuffling || e.button > 0) return;
@@ -376,7 +391,11 @@
   function load() {
     try {
       var s = JSON.parse(localStorage.getItem(STORE) || 'null');
-      if (s && Array.isArray(s.shelves) && s.shelves.length === SHELVES) return s;
+      if (s && Array.isArray(s.shelves)) {
+        /* An older save with a different number of shelves: keep her count, start a fresh bookcase */
+        if (s.shelves.length !== SHELVES) s.shelves = [];
+        return s;
+      }
     } catch (_) {}
     return null;
   }
@@ -505,6 +524,35 @@
   }
 
   shuffleBtn.addEventListener('click', reshuffle);
+
+  /* Reset the books-moved count: first tap asks, second tap within a few seconds resets */
+  var resetBtn = document.getElementById('resetCount');
+  var resetLabel = resetBtn.querySelector('span');
+  var resetTimer = null;
+  function resetIdle() {
+    clearTimeout(resetTimer);
+    resetBtn.classList.remove('confirm', 'done');
+    resetLabel.textContent = 'Reset count';
+  }
+  resetBtn.addEventListener('click', function () {
+    if (!resetBtn.classList.contains('confirm')) {
+      resetBtn.classList.remove('done');
+      resetBtn.classList.add('confirm');
+      resetLabel.textContent = 'Tap again to reset';
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(resetIdle, 3000);
+      return;
+    }
+    state.moves = 0;
+    updateCount();
+    save();
+    clearTimeout(resetTimer);
+    resetBtn.classList.remove('confirm');
+    resetBtn.classList.add('done');
+    resetLabel.textContent = 'Count reset';
+    resetTimer = setTimeout(resetIdle, 1800);
+  });
+  resetBtn.addEventListener('blur', function () { if (resetBtn.classList.contains('confirm')) resetIdle(); });
 
   /* ---------- The dogs ---------- */
   var audio = null;
